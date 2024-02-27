@@ -61,11 +61,11 @@ function love.update(dt)
     end
 
     ball.x = ball.x - ball.speed * dt
-    if ball.x < ball.size/2 then
-        ball.x = ball.size/2
+    if ball.x < 0 + ball.size / 2 then
+        ball.x = 0 + ball.size / 2 
     end
-    if ball.x > love.graphics.getWidth() - ball.size then
-        ball.x = love.graphics.getWidth() - ball.size
+    if ball.x > love.graphics.getWidth() - ball.size / 2 then 
+        ball.x = love.graphics.getWidth() - ball.size / 2
     end
 
     print(ball.x)
@@ -84,7 +84,6 @@ function love.draw()
     love.graphics.rectangle("fill", (player1.location - player1.padSize/2), love.graphics.getHeight()-(background.marge*1.5), player1.padSize, background.marge)
 
     -- Ball
-    local scale = ball.size / ball.image:getWidth()
-    love.graphics.draw(ball.image, ball.x, ball.y, nil, scale, nil, -scale, -scale)
+    love.graphics.draw(ball.image, ball.x, ball.y, nil, nil,nil, ball.size/2)
 end
 
