@@ -93,7 +93,7 @@ function love.draw()
     -- Start Menu
     if gameState == "start" then
         love.graphics.setFont(menuFont)
-        love.graphics.printf("Press Any Key To Start The Game", 0, (love.graphics.getHeight()/3)-(scoreFontSize/2), love.graphics.getWidth(), "center")
+        love.graphics.printf("Press Space To Start The Game", 0, (love.graphics.getHeight()/3)-(scoreFontSize/2), love.graphics.getWidth(), "center")
     end
 
     -- Scores
@@ -112,8 +112,17 @@ end
 
 
 -- Escape function / Quit the game
+-- Start Game
 function love.keypressed(key)
-    if key == 'escape' then
-        love.event.quit()
+    if key == 'space' then
+        if gameState == 'start' then
+            gameState = 'play'
+        end
+    elseif key == 'escape' then
+        if gameState == 'start' then
+            love.event.quit()
+        else
+            gameState = 'start'
+        end
     end
 end
