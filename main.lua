@@ -45,16 +45,16 @@ function love.load()
     player.score = 0
     player.location = love.graphics.getWidth() / 2
     player.padSize = 100
-    player.speed = 1000
+    player.speed = 1200
     
     -- Ball
     ball = {}
     ball.image = sprites.ball
     ball.size = 50
-    ball.speed = 200
+    ball.speed = 600
     ball.score = 0
     ball.x = love.graphics.getWidth() / 2
-    ball.y = love.graphics.getHeight() / 2
+    ball.y = love.graphics.getHeight() / 10
     ball.directionX = math.random(love.graphics.getWidth()-ball.size)
     ball.directionY = love.graphics.getHeight() - player.padSize + 12.5
 
@@ -74,13 +74,10 @@ function love.update(dt)
 
     -- Ball movements
     if gameState == "play" then
-        --ball.x = ball.x - ball.speed * dt
-        ball.y = math.min(ball.directionY, ball.y + ball.speed * dt)
-        if ball.x < 0 + ball.size / 2 then
-            ball.x = 0 + ball.size / 2 
-        elseif ball.x > love.graphics.getWidth() - ball.size / 2 then 
-            ball.x = love.graphics.getWidth() - ball.size / 2
-        end
+        local _ballPlayerAngle = math.atan2( ball.directionY - ball.y, ball.directionX - ball.x )
+        ball.x = ball.x + ( math.cos( ballPlayerAngle ) * ball.speed * dt )
+        ball.y = ball.y + ( math.sin( ballPlayerAngle ) * ball.speed * dt )
+
         print("Ball x: " .. ball.x .. " y: " .. ball.y .. "    Direction  x: " .. ball.directionX .. " y: " .. ball.directionY)
     end
 end
