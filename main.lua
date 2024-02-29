@@ -86,10 +86,18 @@ function love.update(dt)
 
     -- Ball movements
     if gameState == "play" then
-        if ball.isFalling then
-            ball.y = math.min((ball.y + ball.speed * dt), (ball.limitLow))
+        local angle = 0
+        if isFalling then
+            angle = math.atan2(ball.limitLow - ball.y, ball.directionX - ball.x)
         else
-            ball.y = math.max((ball.y - ball.speed * dt), 0)
+            angle = math.atan2(ball.limitLow + ball.y, ball.directionX + ball.x)
+        end
+
+        ball.x = ball.x + ball.speed * math.cos(angle) * dt
+        if ball.isFalling then
+            ball.y = math.min((ball.y + ball.speed * math.sin(angle) * dt), (ball.limitLow))
+        else
+            ball.y = math.max((ball.y - ball.speed * math.sin(angle) * dt), 0)
         end
 
         --Ball Touch Paddle
