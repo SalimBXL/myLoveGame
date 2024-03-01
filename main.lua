@@ -1,19 +1,19 @@
 --[[
-    SalimPasha 2024
     My Love Game
+
+    Pong Remake
+    SalimPasha 2024
 
     Author : Anthony Salim JOLY
     el.salim.salim@gmail.com
     @SalimBXL
 
-    Pong Remake
+    Background Image by rawpixel.com on Freepik
+    https://www.freepik.com/free-vector/neon-grid-background_4394259.htm#query=gaming%20background&position=21&from_view=keyword&track=ais&uuid=c36cd1f8-ba77-4f1f-be03-90d0a836e160
 ]]
 
 function love.load()
-    -- https://www.freepik.com/free-vector/neon-grid-background_4394259.htm#query=gaming%20background&position=21&from_view=keyword&track=ais&uuid=c36cd1f8-ba77-4f1f-be03-90d0a836e160
-    -- Image by rawpixel.com on Freepik
-    --https://www.freepik.com/free-vector/magic-ball-with-electric-lightning-inside-realistic_6055215.htm#fromView=search&page=1&position=16&uuid=e9bad309-48f9-4c3a-83ed-82de82729f2d
-    --Image by upklyak on Freepik
+    
     local _BACKGROUND_IMAGE = "sprites/4394259_91657.jpg"
     local _BALL_IMAGE = "sprites/ballBlue.png"
     local _PADDLE_1 = "sprites/paddleBlu.png"
@@ -45,25 +45,24 @@ function love.load()
     background.height = love.graphics.getHeight() / background.image:getHeight()
     background.marge = 32
 
-    -- Player
-    player = {}
-    player.image = sprites.paddle
-    player.score = 0
-    player.location = love.graphics.getWidth() / 2
-    player.padSize = 100
-    player.speed = 1200
+    -- Paddle
+    paddle = {}
+    paddle.image = sprites.paddle
+    paddle.score = 0
+    paddle.size = paddle.image:getWidth()
+    paddle.x = love.graphics.getWidth() / 2 --initial position in the middle of the window
+    paddle.y = love.graphics.getHeight() - background.marge - paddle.size / 2
+    paddle.speed = 1200
     
     -- Ball
     ball = {}
     ball.image = sprites.ball
-    ball.size = 50
-    ball.speed = 600
     ball.score = 0
     ball.x = love.graphics.getWidth() / 2
     ball.y = love.graphics.getHeight() / 10
-    ball.directionX = math.random(love.graphics.getWidth()-ball.size)
+    ball.size = ball.image:getWidth()
+    ball.speed = 600
     ball.isFalling = true
-    ball.limitLow = love.graphics.getHeight() - background.marge - player.image:getHeight() * 1.5
 
     -- Sounds
     audioTouch = love.audio.newSource(_touch, "static")
@@ -71,58 +70,63 @@ function love.load()
     audioBreak = love.audio.newSource(_break, "static")
 
     -- Game State
+    --  Start   : menu
+    --  play    : in game
     gameState = "start"
 end
 
 
 function love.update(dt)
 
-    -- Player movements from keyboard
+    -- paddle movements from keyboard
     if love.keyboard.isDown("left") then
-        player.location = math.max(background.marge/2 + player.padSize/2, player.location + -player.speed * dt)
+        paddle.x = math.max(background.marge/2 + paddle.size/2, paddle.x + -paddle.speed * dt)
     elseif love.keyboard.isDown("right") then
-        player.location = math.min(love.graphics.getWidth() - background.marge/2 - player.padSize/2, player.location + player.speed * dt)
+        paddle.x = math.min(love.graphics.getWidth() - background.marge/2 - paddle.size/2, paddle.x + paddle.speed * dt)
     end
 
     -- Ball movements
     if gameState == "play" then
-        local angle = 0
+        local angle = math.pi / 2
+        --[[
         if isFalling then
             angle = math.atan2(ball.limitLow - ball.y, ball.directionX - ball.x)
         else
             angle = math.atan2(ball.limitLow + ball.y, ball.directionX + ball.x)
         end
+        ]]
 
         ball.x = ball.x + ball.speed * math.cos(angle) * dt
         if ball.isFalling then
-            ball.y = math.min((ball.y + ball.speed * math.sin(angle) * dt), (ball.limitLow))
+            ball.y = math.min((ball.y + ball.speed * math.sin(angle) * dt), love.graphics.getHeight() - ball.image:getHeight() / 2)
         else
             ball.y = math.max((ball.y - ball.speed * math.sin(angle) * dt), 0)
         end
+    end
 
-        --Ball Touch Paddle
-        if isBallTouchingThePaddle() then
-            audioTouch:play()
-            player.image = sprites.paddleTouched
-            -- next the ball rebounce...
-            ball.isFalling = false
-        else
-            player.image = sprites.paddle
-        end
+    --Ball Touch Paddle
+    if isBallTouchingThePaddle() then
+        audioTouch:play()
+        paddle.image = sprites.paddleTouched
+        -- next the ball rebounce...
+        ball.isFalling = false
+    else
+        paddle.image = sprites.paddle
+    end
 
-        -- Ball Fall beyond the paddle
-        if ball.isFalling and ball.y >= ball.limitLow then
-            audioStartEnd:play()
-            gameState = "start"
-            print("GAME OVER")
-        end
+    -- Ball Fall beyond the paddle
+    if isBallTouchingTheFloor() then
+        audioStartEnd:play()
+        gameState = "start"
+        ball.x = love.graphics.getWidth() / 2
+        ball.y = love.graphics.getHeight() / 10
+    end
 
-        --Ball Touch the roof
-        if isBallTouchingTheRoof() then
-            audioBreak:play()
-            -- ball rebounce
-            ball.isFalling = true
-        end
+    --Ball Touch the roof
+    if isBallTouchingTheRoof() then
+        audioBreak:play()
+        -- ball rebounce
+        ball.isFalling = true
     end
 end
 
@@ -136,16 +140,16 @@ function love.draw()
         love.graphics.setFont(menuFont)
         love.graphics.printf("Press Space To Start The Game", 0, (love.graphics.getHeight()/3)-(scoreFontSize/2), love.graphics.getWidth(), "center")
         -- Scores
-        local _score = player.score .. " : " .. ball.score
+        local _score = paddle.score .. " : " .. ball.score
         love.graphics.setFont(scoreFont)
         love.graphics.printf(_score, 0, (love.graphics.getHeight()/2)-(scoreFontSize/2), love.graphics.getWidth(), "center")
     end
     
-    -- Player
-    love.graphics.draw(player.image, player.location, love.graphics.getHeight()-(background.marge*1.5), nil, nil, nil, player.padSize/2)
+    -- paddle
+    love.graphics.draw(paddle.image, paddle.x, love.graphics.getHeight()-(background.marge*1.5), nil, nil, nil, paddle.size/2)
 
     -- Ball
-    love.graphics.draw(ball.image, ball.x, ball.y, nil, nil,nil, ball.size/2)
+    love.graphics.draw(ball.image, ball.x, ball.y, nil, nil, nil, ball.size / 2 , ball.size / 2)
 end
 
 
@@ -168,9 +172,20 @@ function love.keypressed(key)
 end
 
 function isBallTouchingThePaddle()
-    return ball.y >= ball.limitLow and ball.x <= player.location + player.image:getWidth() and ball.x >= player.location 
+    local paddleTop = paddle.y - paddle.size / 2
+    local paddleLeft = paddle.x - paddle.size / 2
+    local paddleRight = paddle.x + paddle.size / 2
+    local ballBottom = ball.y + ball.size / 2
+    local ballLeft = ball.x - ball.size / 2
+    local ballRight = ball.x + ball.size / 2
+    
+    return (ballBottom >= paddleTop and ballRight >= paddleLeft and ballLeft <= paddleRight)
 end
 
 function isBallTouchingTheRoof()
-    return ball.y <= 0
+    return ball.y <= ball.size / 2
+end
+
+function isBallTouchingTheFloor()
+    return ball.y >= love.graphics.getHeight() - ball.size / 2
 end
