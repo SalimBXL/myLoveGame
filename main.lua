@@ -88,14 +88,6 @@ function love.update(dt)
     -- Ball movements
     if gameState == "play" then
         local angle = math.pi / 2
-        --[[
-        if isFalling then
-            angle = math.atan2(ball.limitLow - ball.y, ball.directionX - ball.x)
-        else
-            angle = math.atan2(ball.limitLow + ball.y, ball.directionX + ball.x)
-        end
-        ]]
-
         ball.x = ball.x + ball.speed * math.cos(angle) * dt
         if ball.isFalling then
             ball.y = math.min((ball.y + ball.speed * math.sin(angle) * dt), love.graphics.getHeight() - ball.image:getHeight() / 2)
@@ -114,19 +106,19 @@ function love.update(dt)
         paddle.image = sprites.paddle
     end
 
-    -- Ball Fall beyond the paddle
-    if isBallTouchingTheFloor() then
-        audioStartEnd:play()
-        gameState = "start"
-        ball.x = love.graphics.getWidth() / 2
-        ball.y = love.graphics.getHeight() / 10
-    end
-
     --Ball Touch the roof
     if isBallTouchingTheRoof() then
         audioBreak:play()
         -- ball rebounce
         ball.isFalling = true
+    end
+
+    -- Ball is outside teh window
+    if isBallOutside() then
+        audioStartEnd:play()
+        gameState = "start"
+        ball.x = love.graphics.getWidth() / 2
+        ball.y = love.graphics.getHeight() / 10
     end
 end
 
@@ -172,13 +164,12 @@ function love.keypressed(key)
 end
 
 function isBallTouchingThePaddle()
-    local paddleTop = paddle.y - paddle.size / 2
+    local paddleTop = love.graphics.getHeight() - background.marge - paddle.image:getHeight()/2
     local paddleLeft = paddle.x - paddle.size / 2
     local paddleRight = paddle.x + paddle.size / 2
     local ballBottom = ball.y + ball.size / 2
     local ballLeft = ball.x - ball.size / 2
-    local ballRight = ball.x + ball.size / 2
-    
+    local ballRight = ball.x + ball.size / 2    
     return (ballBottom >= paddleTop and ballRight >= paddleLeft and ballLeft <= paddleRight)
 end
 
@@ -188,4 +179,8 @@ end
 
 function isBallTouchingTheFloor()
     return ball.y >= love.graphics.getHeight() - ball.size / 2
+end
+
+function isBallOutside()
+    return ball.x <= 0 or ball.x >= love.graphics.getWidth() or ball.y >= love.graphics.getHeight() - background.marge
 end
